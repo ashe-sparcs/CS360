@@ -24,36 +24,43 @@ public class HW4 {
         ResultSet rs;
         int i;
         try {
-            String[] kinds = {"speed", "ram", "hd", "screen"};
-            String[] minValue = new String[4];
-            String[] maxValue = new String[4];
             InputStreamReader r = new InputStreamReader(System.in);
             BufferedReader b = new BufferedReader(r);
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            con = DriverManager.getConnection( "jdbc:oracle:thin:@dbclick.kaist.ac.kr:1521:orcl", "s20140679", "elqldhkdrlaelql");
+            con = DriverManager.getConnection( "jdbc:oracle:thin:@dbclick.kaist.ac.kr:1521:orcl", "s20140602", "20140602");
             stmt = con.createStatement();
 
             // Problem 1
-            for (i=0;i<kinds.length;i++) {
-                System.out.println("range of " + kinds[i] + " in format: min max");
-                String [] temp = b.readLine().split(" ");
-                minValue[i] = temp[0];
-                maxValue[i] = temp[1];
-            }
-            queryString = "SELECT maker, laptop.model, speed, ram, hd, screen, price FROM product, laptop WHERE product.model = laptop.model AND "+makeBETWEEN("speed", minValue[0], maxValue[0])+ " AND " + makeBETWEEN("ram", minValue[1], maxValue[1]) + " AND " + makeBETWEEN("hd", minValue[2], maxValue[2]) + " AND " + makeBETWEEN("screen", minValue[3], maxValue[3]);
-            System.out.println(queryString);
-            rs = stmt.executeQuery(queryString);
-
-            System.out.println("MAKER\tMODEL\t\tSPEED\tRAM\t\t\tHD\t\tSCREEN\t\tPRICE");
+            String maximumPrice;
+            String[] minimumSpec;
+            System.out.print("maximum price : ");
+            maximumPrice = b.readLine();
+            System.out.print("minimum values (in the form of speed ram hd screen) : ");
+            minimumSpec = b.readLine().split(" ");
+            queryString = "SELECT maker, product.model, speed, ram, hd, screen, price FROM product, laptop WHERE price <= ? AND speed >= ? AND ram >= ? AND hd >= ? AND screen >= ?";
+            pstmt = con.prepareStatement(queryString);
+            pstmt.setString(1, maximumPrice);
+            pstmt.setString(2, minimumSpec[0]);
+            pstmt.setString(3, minimumSpec[1]);
+            pstmt.setString(4, minimumSpec[2]);
+            pstmt.setString(5, minimumSpec[3]);
+            rs = pstmt.executeQuery();
             while (rs.next()) {
-                String maker = rs.getString(1);
-                String model = rs.getString(2);
-                String speed = rs.getString(3);
-                String ram = rs.getString(4);
-                String hd = rs.getString(5);
-                String screen = rs.getString(6);
-                String price = rs.getString(7);
-                System.out.println(maker + "\t\t"+ model + "\t\t"+ speed + "\t\t"+ ram + "\t\t"+ hd + "\t\t"+ screen + "\t\t"+ price);
+                System.out.print("maker : ");
+                System.out.print(rs.getString(1) + ", ");
+                System.out.print("model : ");
+                System.out.print(rs.getString(2) + ", ");
+                System.out.print("speed : ");
+                System.out.print(rs.getString(3) + ", ");
+                System.out.print("ram : ");
+                System.out.print(rs.getString(4) + ", ");
+                System.out.print("hd : ");
+                System.out.print(rs.getString(5) + ", ");
+                System.out.print("screen : ");
+                System.out.print(rs.getString(6) + ", ");
+                System.out.print("price : ");
+                System.out.print(rs.getString(7));
+                System.out.println("");
             }
 
             // Problem 2
@@ -118,7 +125,6 @@ public class HW4 {
                 String hd = rs.getString(4);
                 String price = rs.getString(5);
                 System.out.format("%-5s %-5s %-5s %-5s %-5s\n", model, speed, ram, hd, price);
-                //System.out.println(model + "\t" + speed + "  \t\t" + ram + "\t" + hd + "\t" + price);
             }
 
             System.out.println("deleting from product...");
